@@ -1,6 +1,11 @@
+class NodeData:
+    def __init__(self, timeStamp, eventType):
+        self.timeStamp = timeStamp
+        self.eventType = eventType
+
 class Node:
-    def __init__(self,initdata):
-        self.data = initdata
+    def __init__(self, timeStamp, eventType):
+        self.data = NodeData(timeStamp, eventType)
         self.next = None
 
     def getData(self):
@@ -9,8 +14,8 @@ class Node:
     def getNext(self):
         return self.next
 
-    def setData(self,newdata):
-        self.data = newdata
+    def setData(self, timeStamp, eventType):
+        self.data = NodeData(timeStamp, eventType)
 
     def setNext(self,newnext):
         self.next = newnext
