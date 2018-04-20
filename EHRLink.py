@@ -1,11 +1,28 @@
-class NodeData:
-    def __init__(self, timeStamp, eventType):
-        self.timeStamp = timeStamp
-        self.eventType = eventType
+# EventNode data carrier classes
 
-class Node:
+#master
+class MasterEventData:
+    def __init__(self, timeStamp):
+        self.timeStamp = timeStamp
+
+#inheritences
+class CheckIn(MasterEventData):
+    pass
+
+class CheckOut(MasterEventData):
+    pass
+
+class Death(MasterEventData):
+    pass
+
+class InsulinAdmin(MasterEventData):
+    def __init__(self, amount):
+        self.amount = amount
+
+# linked list event node
+class EventNode:
     def __init__(self, timeStamp, eventType):
-        self.data = NodeData(timeStamp, eventType)
+        self.data = MasterEventData(timeStamp)
         self.next = None
 
     def getData(self):
@@ -15,12 +32,12 @@ class Node:
         return self.next
 
     def setData(self, timeStamp, eventType):
-        self.data = NodeData(timeStamp, eventType)
+        self.data = MasterEventData(timeStamp, eventType)
 
     def setNext(self,newnext):
         self.next = newnext
 
-class LinkedList:
+class EHRLink:
 
     def __init__(self):
         self.head = None
@@ -29,7 +46,7 @@ class LinkedList:
         return self.head == None
 
     def add(self, item):
-        temp = Node(item)
+        temp = item
         temp.setNext(self.head)
         self.head = temp
 
