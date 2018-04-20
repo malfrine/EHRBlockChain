@@ -2,22 +2,49 @@
 
 #master
 class MasterEventData:
-    def __init__(self, timeStamp):
+    def __init__(self, timeStamp, visitId):
         self.timeStamp = timeStamp
+        self.visitId = visitId
 
-#inheritences
+    def __eq__(self, other):
+        """Overrides the default implementation"""
+        if isinstance(self, other.__class__):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
+
+    def __ne__(self, other):
+        """Overrides the default implementation (unnecessary in Python 3)"""
+        x = self.__eq__(other)
+        if x is not NotImplemented:
+            return not x
+        return NotImplemented
+
+    def __hash__(self):
+        """Overrides the default implementation"""
+        return hash(tuple(sorted(self.__dict__.items())))
+
+#event subclasses
 class CheckIn(MasterEventData):
-    pass
+    def __init__(self, timeStamp, visitId):
+        super(MasterEventData, self).__init__(timeStamp, visitId)
 
 class CheckOut(MasterEventData):
-    pass
+    def __init__(self, timeStamp, visitId):
+        super(MasterEventData, self).__init__(timeStamp, visitId)
 
 class Death(MasterEventData):
-    pass
+    def __init__(self, timeStamp, visitId):
+        super(MasterEventData, self).__init__(timeStamp, visitId)
 
 class InsulinAdmin(MasterEventData):
-    def __init__(self, amount):
-        self.amount = amount
+    def __init__(self, insulinStartTime, visitId, insulinEndTime, insulinAmount):
+        super(MasterEventData, self).__init__(insulinStartTime, visitId)
+        self.endTime = insulinEndTime
+        self.amount = insulinAmount
+
+class PatientDescriptor:
+    def __init__(self, patient_id):
+        self.id = patient_id
 
 # linked list event node
 class EventNode:
