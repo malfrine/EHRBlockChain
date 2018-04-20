@@ -1,0 +1,12 @@
+#info regarding "data.csv" headers
+icd9_code - code for diabetes
+long_title - name for diabetes
+subject_id - patient unique identifier
+hadm_id - patient visit identifier
+ordercategoryname - insulin input tag
+starttime - insulin admin start time
+endtime - insulin admin end time
+amount - amount of insulin administered
+admittime - patient admit time
+dischtime - patient discharge time
+deathtime - patient death time 
