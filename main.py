@@ -1,52 +1,151 @@
 import pandas as pd
 import EHRLink as ehrl
+import os
 
 def main():
-    df = pd.read_csv("data.csv")
+    df = pd.read_csv("all.csv")
 
-    #clean df for easy data transformation
+    # clean df for easy data transformation
     df = clean_df(df)
 
+    # transform data to list of EHRLinks
     patient_list = parse_df(df)
 
-    analyze(patient_list)
+    result = analyze(patient_list)
+
+    #export results to .csv
+    path_to_export = os.path.join(os.pathsep, os.getcwd(), 'result.csv')
+    result.to_csv(path_to_export, index=False)
 
 def clean_df(df):
 
-    #sort
-    df.sort(['subject_id', 'hadm_id'],
-            ascending=[1, 1],
-            inplace=True)
+    #sort by subject, visit, then starttime (reverse)
+    df.sort_values(['subject_id', 'hadm_id','starttime'],
+                   ascending=[True, True, False],
+                   inplace=True)
+    df = df.reset_index(drop=True)
 
-    return df
+    # add a column with a one row look ahead on hadm_id
+    hadm_id_next = pd.concat([df['hadm_id'][1:], pd.Series([None])])
+    hadm_id_next = hadm_id_next.reset_index(drop=True)
+    hadm_id_next.name = 'hadm_id_next'
+
+    # add a column with row look ahead on subject_id
+    subject_id_next = pd.concat([df['subject_id'][1:], pd.Series([None])])
+    subject_id_next = subject_id_next.reset_index(drop=True)
+    subject_id_next.name = 'subject_id_next'
+
+    return pd.concat([df,hadm_id_next,subject_id_next], axis=1)
 
 def parse_df(df):
 
     patient_list = []
-    cur_patient_id = None
 
-    for row in df.iterrows():
+    isRowEndOfVisit = False
+    isRowStartOfNewVisit = True
 
-        # if new patient_id:
-            # add old EhrLink to patient_list
-            # instantiate new EhrLink
-            # add id to new EhrLink head
+    curEhrLink = ehrl.EHRLink()
 
-        # add admit event node
-        # add insulin_admin event node
-        # add death / discharge event node
+    for index, row in df.iterrows():
 
-        pass
+        if isRowStartOfNewVisit:
+
+            # add discharge event
+            curEhrLink.addDischargeNode(timeStamp=row.dischtime,
+                                        visitId=row.hadm_id)
+
+            # add death event if it has occurred for this visit id
+            if row.deathflag == 1:
+                curEhrLink.addDeathNode(timeStamp=row.deathtime,
+                                        visitId=row.hadm_id)
+
+        # add insulin admin event node
+        curEhrLink.addInsulinAdminNode(startTime=row.starttime,
+                                       endTime=row.endtime,
+                                       amount=row.amount,
+                                       visitId=row.hadm_id)
+
+        if isRowEndOfVisit:
+
+            curEhrLink.addCheckInNode(timeStamp=row.admittime,
+                                      visitId=row.hadm_id)
+
+            curEhrLink.addPatientDescriptor(patient_id=row.subject_id)
+
+            if isRowNewPatient:
+               patient_list.append(curEhrLink)
+               curEhrLink = ehrl.EHRLink()
+
+
+        isRowStartOfNewVisit = isRowEndOfVisit
+        isRowEndOfVisit = row.hadm_id != row.hadm_id_next
+        isRowNewPatient = row.subject_id != row.subject_id_next
 
     return patient_list
 
 def analyze(patient_list):
 
-    death = []
-    insul_time = []
-    insul_amount = []
+    id_list = []
+    visit_list = []
+    death_list = []
+    total_insulin_list = []
 
-    #foreach EhrLink in patient_list:
-        # append last insul time - check_in time to insul_time
-        # append last insul_amount to insul_amount
-        #
+    for patient in patient_list:
+
+        # initial variables and flags for data collection
+        patient_id = None
+        isCheckIn = False
+        isCheckOut = False
+        isDead = 0
+        total_insulin = 0
+        visits = 0
+
+        # iterate through EhrLink and collect relevant data
+        current = patient.head
+        while current != None:
+            data = current.getData()
+
+            name = data.__class__.__name__
+
+            if name == "PatientDescriptor":
+                patient_id = data.id
+
+            if name == "PatientDeath":
+                isDead = 1
+
+            if name == "InsulinAdmin":
+                total_insulin += data.amount
+
+            if name == "CheckOut":
+                isCheckOut = True
+
+            if name == "CheckIn":
+                isCheckIn = True
+
+            # if patient completes a visit
+            if isCheckIn and isCheckOut:
+                isCheckIn = False
+                isCheckOut = False
+                visits += 1
+
+            current = current.getNext()
+
+        id_list += [patient_id]
+        visit_list += [visits]
+        death_list += [isDead]
+        total_insulin_list += [total_insulin]
+
+    return make_into_df(id_list, visit_list, death_list, total_insulin_list)
+
+
+def make_into_df(id_list, visit_list, death_list, total_insulin_list):
+    result = pd.DataFrame(
+        {'subject_id':id_list,
+         'visits':visit_list,
+         'deathflag':death_list,
+         'total_insulin':total_insulin_list
+        })
+    return result
+
+if __name__ == "__main__":
+    main()
