@@ -26,19 +26,19 @@ class MasterEventData:
 #event subclasses
 class CheckIn(MasterEventData):
     def __init__(self, timeStamp, visitId):
-        super(MasterEventData, self).__init__(timeStamp, visitId)
+        super(CheckIn, self).__init__(timeStamp, visitId)
 
 class CheckOut(MasterEventData):
     def __init__(self, timeStamp, visitId):
-        super(MasterEventData, self).__init__(timeStamp, visitId)
+        super(CheckOut, self).__init__(timeStamp, visitId)
 
-class Death(MasterEventData):
+class PatientDeath(MasterEventData):
     def __init__(self, timeStamp, visitId):
-        super(MasterEventData, self).__init__(timeStamp, visitId)
+        super(PatientDeath, self).__init__(timeStamp, visitId)
 
 class InsulinAdmin(MasterEventData):
     def __init__(self, insulinStartTime, visitId, insulinEndTime, insulinAmount):
-        super(MasterEventData, self).__init__(insulinStartTime, visitId)
+        super(InsulinAdmin, self).__init__(insulinStartTime, visitId)
         self.endTime = insulinEndTime
         self.amount = insulinAmount
 
@@ -48,8 +48,8 @@ class PatientDescriptor:
 
 # linked list event node
 class EventNode:
-    def __init__(self, timeStamp, eventType):
-        self.data = MasterEventData(timeStamp)
+    def __init__(self):
+        self.data = None
         self.next = None
 
     def getData(self):
@@ -58,10 +58,10 @@ class EventNode:
     def getNext(self):
         return self.next
 
-    def setData(self, timeStamp, eventType):
-        self.data = MasterEventData(timeStamp, eventType)
+    def setData(self, eventData):
+        self.data = eventData
 
-    def setNext(self,newnext):
+    def setNext(self, newnext):
         self.next = newnext
 
 class EHRLink:
@@ -72,10 +72,42 @@ class EHRLink:
     def isEmpty(self):
         return self.head == None
 
-    def add(self, item):
-        temp = item
+    # construction methods
+    def add(self, eventNode):
+        temp = eventNode
         temp.setNext(self.head)
         self.head = temp
+
+    def addCheckInNode(self, timeStamp, visitId):
+        eventNode = EventNode()
+        eventNode.setData(CheckIn(timeStamp=timeStamp,
+                                  visitId=visitId))
+        self.add(eventNode)
+
+    def addDischargeNode(self, timeStamp, visitId):
+        eventNode = EventNode()
+        eventNode.setData(CheckOut(timeStamp=timeStamp,
+                                   visitId=visitId))
+        self.add(eventNode)
+
+    def addDeathNode(self, timeStamp, visitId):
+        eventNode = EventNode()
+        eventNode.setData(PatientDeath(timeStamp=timeStamp,
+                                       visitId=visitId))
+        self.add(eventNode)
+
+    def addInsulinAdminNode(self, startTime, endTime, amount, visitId):
+        eventNode = EventNode()
+        eventNode.setData(InsulinAdmin(insulinAmount=amount,
+                                       insulinStartTime=startTime,
+                                       insulinEndTime=endTime,
+                                       visitId=visitId))
+        self.add(eventNode)
+
+    def addPatientDescriptor(self, patient_id):
+        eventNode = EventNode()
+        eventNode.setData(PatientDescriptor(patient_id))
+        self.add(eventNode)
 
     def size(self):
         current = self.head
@@ -86,23 +118,24 @@ class EHRLink:
 
         return count
 
-    def search(self, item):
+    def search(self, eventNode):
         current = self.head
         found = False
         while current != None and not found:
-            if current.getData() == item:
+            if current.getData() == eventNode:
                 found = True
             else:
                 current = current.getNext()
 
         return found
 
-    def remove(self, item):
+
+    def remove(self, eventNode):
         current = self.head
         previous = None
         found = False
         while not found:
-            if current.getData() == item:
+            if current.getData() == eventNode:
                 found = True
             else:
                 previous = current
