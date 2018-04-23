@@ -9,4 +9,5 @@ endtime - insulin admin end time
 amount - amount of insulin administered
 admittime - patient admit time
 dischtime - patient discharge time
-deathtime - patient death time 
+deathtime - patient death time
+
