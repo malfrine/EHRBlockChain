@@ -1,4 +1,4 @@
-Find icd9_code for diabete diagnoses: (72)
+AFind icd9_code for diabete diagnoses: (72)
 select icd9_code, short_title, long_title from mimiciii.d_icd_diagnoses where LOWER(long_title) LIKE '%diabete%';
 
 Find subject_id for diabete patients: (10571)
