@@ -1,6 +1,7 @@
 import pandas as pd
 import EHRLink as ehrl
 import os
+import timeit
 
 def main():
     df = pd.read_csv("all.csv")
@@ -8,14 +9,36 @@ def main():
     # clean df for easy data transformation
     df = clean_df(df)
 
+    transform_start = timeit.default_timer()
     # transform data to list of EHRLinks
     patient_list = parse_df(df)
+    transform_end = timeit.default_timer()
 
+    # analyze data and gather relevant data
+    traverse_start = timeit.default_timer()
     result = analyze(patient_list)
+    traverse_end = timeit.default_timer()
+
+    transform_time = (transform_end - transform_start)
+    traverse_time = (traverse_end - traverse_start)
+
+    transform_time_per = (transform_end - transform_start) / len(df.index)
+    traverse_time_per = (traverse_end - traverse_start) / len(patient_list)
 
     #export results to .csv
-    path_to_export = os.path.join(os.pathsep, os.getcwd(), 'result.csv')
-    result.to_csv(path_to_export, index=False)
+    path_to_export_csv = os.path.join(os.pathsep, os.getcwd(), 'result.csv')
+    result.to_csv(path_to_export_csv, index=False)
+
+    #export timer to .txt
+    path_to_export_txt = os.path.join(os.pathsep, os.getcwd(), 'timer.txt')
+    f = open('timer.txt', 'w')
+    export_str = ("transform time: " + str(transform_time) + " (s), " +
+                  str(transform_time_per) + " (s/row) \n" +
+                  "traverse time: " + str(traverse_time) + " (s), " +
+                  str(traverse_time_per) + " (s/patient) \n")
+
+    f.write(export_str)
+    f.close()
 
 def clean_df(df):
 
@@ -136,7 +159,6 @@ def analyze(patient_list):
         total_insulin_list += [total_insulin]
 
     return make_into_df(id_list, visit_list, death_list, total_insulin_list)
-
 
 def make_into_df(id_list, visit_list, death_list, total_insulin_list):
     result = pd.DataFrame(
