@@ -4,7 +4,7 @@ import os
 import timeit
 
 def main():
-    df = pd.read_csv("all.csv")
+    df = pd.read_csv("test100.csv")
 
     # clean df for easy data transformation
     df = clean_df(df)
