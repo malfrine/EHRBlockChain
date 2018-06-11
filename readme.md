@@ -1,6 +1,6 @@
 # EHRBlockChain
 
-For more information regarding the purpose of this document, please see "XXX.pdf"
+For more information regarding the purpose of this document, please see "report.pdf"
 
 ## Running the program
 Using the IDE of your choice (preferrably PyCharm Community Edition) configure the interpreter to compile "main.py."
