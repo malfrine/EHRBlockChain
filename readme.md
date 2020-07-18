@@ -3,7 +3,7 @@
 For more information regarding the purpose of this document, please see "report.pdf"
 
 ## Running the program
-Using the IDE of your choice (preferrably PyCharm Community Edition) configure the interpreter to compile "main.py."
+Using the IDE of your choice (preferrably PyCharm Community Edition) configure the interpreter to run "main.py."
 
 Ensure you have the following libraries:
   - pandas
